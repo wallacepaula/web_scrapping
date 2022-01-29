@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jan 29 00:20:18 2022
+
+@author: walla
+"""
+
+# Import packages
+import requests
+from bs4 import BeautifulSoup
+
+# Specify url: url
+url = 'https://www.lfg.com.br/'
+
+# Package the request, send the request and catch the response: r
+r = requests.get(url)
+
+# Extracts the response as html: html_doc
+html_doc = r.text
+
+# Create a BeautifulSoup object from the HTML: soup
+soup = BeautifulSoup(html_doc, features="lxml")
+
+# Extract all urls from the website
+urls = [link.get('href') for link in soup.find_all('a')
+         if 'www.lfg' in link.get('href')]
+
+def contain_ga(urls):
+    """
+    Returns list of booleans telling if the pages contains Google Analytics Tags
+
+    """
+    tags = []
+    for url in urls:
+        r = requests.get(url)
+        html_doc = r.text
+        soup = BeautifulSoup(html_doc, features="lxml")
+        pretty_soup = soup.prettify()
+        tags.append('<!-- BEGIN GOOGLE UNIVERSAL ANALYTICS CODE -->' in pretty_soup)
+    return tags
+
+def contain_gtm(urls):
+    """
+    Returns list of booleans telling if the pages contains Google Tag Managers
+
+    """
+    tags = []
+    for url in urls:
+        r = requests.get(url)
+        html_doc = r.text
+        soup = BeautifulSoup(html_doc, features="lxml")
+        pretty_soup = soup.prettify()
+        tags.append('<!-- Google Tag Manager -->' in pretty_soup)
+    return tags
+
+tags_ga = contain_ga(urls)
+tags_gtm = contain_gtm(urls)
